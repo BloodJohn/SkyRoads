@@ -4,7 +4,7 @@ using UnityEngine.VR.WSA.Persistence;
 
 public class GridLayer : MonoBehaviour
 {
-    public GameObject cellPrefab;
+    public List<GameObject> cellPrefab;
     public GameObject bridgePrefab;
     public float dx = 0.737f;
     public float dy = 0.426f;
@@ -51,6 +51,20 @@ public class GridLayer : MonoBehaviour
                     cellDataList.Add(1);
                 }
             }
+
+        //добавляем 10 городов
+        var i = 5;
+        while (i > 0)
+        {
+            var x = Random.Range(0, sizeX - 1);
+            var y = Random.Range(0, sizeY - 1);
+
+            if (cellDataList[y * sizeX + x] == 1)
+            {
+                cellDataList[y * sizeX + x] = 2;
+                i--;
+            }
+        }
     }
 
     public void BuildGrid()
@@ -63,9 +77,10 @@ public class GridLayer : MonoBehaviour
         {
             for (var y = 0; y < sizeY; y++)
             {
-                if (cellDataList[y * sizeX + x] == 0) continue;
+                var id = cellDataList[y * sizeX + x];
+                if (id == 0) continue;
 
-                var newCell = Instantiate(cellPrefab, transform);
+                var newCell = Instantiate(cellPrefab[id - 1], transform);
                 var pos = new Vector3();
                 pos = topShift;
                 pos += shiftX * x + shiftY * y;
@@ -75,7 +90,7 @@ public class GridLayer : MonoBehaviour
 
                 var cell = newCell.GetComponent<CellView>();
                 cellViewList[y * sizeX + x] = cell;
-                cell.id = cellDataList[y * sizeX + x];
+                cell.id = id;
                 cell.x = x;
                 cell.y = y;
             }
@@ -98,11 +113,16 @@ public class GridLayer : MonoBehaviour
                 var difference = clickCell.transform.position - nearCell.transform.position;
                 if (difference.x < 0) difference *= -1f;
                 var angle = Vector2.Angle(Vector2.down, difference);
-                newBridge.transform.Rotate(0,0,angle);
+                newBridge.transform.Rotate(0, 0, angle);
             }
+
+        if (OneRoadTest())
+        {
+            Debug.LogFormat("WIN!");
+        }
     }
 
-    public CellView this[int x, int y]
+    private CellView this[int x, int y]
     {
         get
         {
@@ -112,7 +132,7 @@ public class GridLayer : MonoBehaviour
         }
     }
 
-    public IEnumerable<CellView> GetNear(CellView cell)
+    private IEnumerable<CellView> GetNear(CellView cell)
     {
         if (this[cell.x - 1, cell.y - 1] != null)
             yield return this[cell.x - 1, cell.y - 1];
@@ -126,5 +146,45 @@ public class GridLayer : MonoBehaviour
             yield return this[cell.x, cell.y + 1];
         if (this[cell.x - 1, cell.y] != null)
             yield return this[cell.x - 1, cell.y];
+    }
+
+    public bool OneRoadTest()
+    {
+        int roadNum = 1;
+
+        for (var y = 0; y < sizeY; y++)
+            for (var x = 0; x < sizeX; x++)
+            {
+                var cell = this[x, y];
+                if (null == cell) continue;
+                if (!cell.hasBridge) cell.roadTest = 0;
+                cell.roadTest = int.MaxValue;
+            }
+
+        for (var y = 0; y < sizeY; y++)
+            for (var x = 0; x < sizeX; x++)
+            {
+                var cell = this[x, y];
+                if (null == cell) continue;
+                if (!cell.IsTown) continue;
+                if (cell.roadTest < int.MaxValue) continue;
+
+                cell.roadTest = roadNum;
+                MarkAllRoad(cell);
+                roadNum++;
+            }
+
+        Debug.LogFormat("RoadTest {0}", roadNum-1);
+        return roadNum == 2;
+    }
+
+    private void MarkAllRoad(CellView townCell)
+    {
+        foreach (var nearCell in GetNear(townCell))
+            if (nearCell.hasBridge && nearCell.roadTest > townCell.roadTest)
+            {
+                nearCell.roadTest = townCell.roadTest;
+                MarkAllRoad(nearCell);
+            }
     }
 }

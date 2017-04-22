@@ -7,9 +7,15 @@ public class CellView : MonoBehaviour
     public int y;
     public GridLayer grid;
     public bool hasBridge;
+    public int roadTest;
 
     private void Awake()
     {
         grid = transform.parent.GetComponent<GridLayer>();
+    }
+
+    public bool IsTown
+    {
+        get { return id == 2; }
     }
 }
