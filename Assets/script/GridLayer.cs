@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VR.WSA.Persistence;
+using UnityEngine.SceneManagement;
 
 public class GridLayer : MonoBehaviour
 {
@@ -133,9 +133,9 @@ public class GridLayer : MonoBehaviour
         }
     }
 
-    public void BuildBridge(CellView clickCell)
+    public bool BuildBridge(CellView clickCell)
     {
-        if (clickCell.hasBridge) return;
+        if (clickCell.hasBridge) return false;
 
         foreach (var nearCell in GetNear(clickCell))
             if (nearCell.hasBridge)
@@ -153,19 +153,17 @@ public class GridLayer : MonoBehaviour
                 newBridge.transform.Rotate(0, 0, angle);
             }
 
-        if (clickCell.hasBridge && OneRoadTest())
-        {
-            Debug.LogFormat("WIN!");
-        }
+        return clickCell.hasBridge;
     }
 
     private CellView this[int x, int y]
     {
         get
         {
-            if (x + y < 0) return null;
-            if (y * sizeX + x >= cellViewList.Count) return null;
-            return cellViewList[y * sizeX + x];
+            var index = y * sizeX + x;
+            if (index < 0) return null;
+            if (index >= cellViewList.Count) return null;
+            return cellViewList[index];
         }
     }
 

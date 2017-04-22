@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
@@ -55,9 +56,14 @@ public class GameController : MonoBehaviour
                 if (cell==null) continue;
                 Debug.LogFormat("click {0}", hit.transform.parent.gameObject.name);
 
-                grid.BuildBridge(cell);
-                /*var itemButton = hit.transform.gameObject.GetComponent<ItemButton>();
-                if (itemButton != null) CheeseCakeClick(hit.point, itemButton);*/
+                if (grid.BuildBridge(cell))
+                {
+                    if (grid.OneRoadTest())
+                    {
+                        Debug.LogFormat("WIN");
+                        SceneManager.LoadScene(WinController.sceneName);
+                    }
+                }
             }
         }
 
