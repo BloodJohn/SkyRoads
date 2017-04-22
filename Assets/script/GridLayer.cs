@@ -99,11 +99,12 @@ public class GridLayer : MonoBehaviour
 
     public void BuildBridge(CellView clickCell)
     {
-        clickCell.hasBridge = true;
+        if (clickCell.hasBridge) return;
 
         foreach (var nearCell in GetNear(clickCell))
             if (nearCell.hasBridge)
             {
+                clickCell.hasBridge = true;
                 var newBridge = Instantiate(bridgePrefab, transform);
 
                 var pos = (clickCell.transform.position + nearCell.transform.position) / 2;
@@ -116,7 +117,7 @@ public class GridLayer : MonoBehaviour
                 newBridge.transform.Rotate(0, 0, angle);
             }
 
-        if (OneRoadTest())
+        if (clickCell.hasBridge && OneRoadTest())
         {
             Debug.LogFormat("WIN!");
         }
