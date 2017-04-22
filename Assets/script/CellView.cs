@@ -16,6 +16,6 @@ public class CellView : MonoBehaviour
 
     public bool IsTown
     {
-        get { return id == 2; }
+        get { return id >= 5; }
     }
 }

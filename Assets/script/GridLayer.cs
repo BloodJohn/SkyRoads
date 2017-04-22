@@ -48,20 +48,56 @@ public class GridLayer : MonoBehaviour
                 }
                 else
                 {
-                    cellDataList.Add(1);
+                    var rnd = Random.Range(1, 10);
+                    if (rnd <=4)
+                        cellDataList.Add(1); //луга
+                    else if (rnd <= 7)
+                        cellDataList.Add(2); //лес
+                    else if (rnd <= 8)
+                        cellDataList.Add(3); //горы
+                    else
+                        cellDataList.Add(4); //вода
                 }
             }
 
-        //добавляем 10 городов
-        var i = 5;
+        //добавляем 4 поселков
+        var i = 4;
         while (i > 0)
         {
             var x = Random.Range(0, sizeX - 1);
             var y = Random.Range(0, sizeY - 1);
 
-            if (cellDataList[y * sizeX + x] == 1)
+            if (cellDataList[y * sizeX + x] > 0)
             {
-                cellDataList[y * sizeX + x] = 2;
+                cellDataList[y * sizeX + x] = 5;
+                i--;
+            }
+        }
+
+        //добавляем 3 городов
+        i = 3;
+        while (i > 0)
+        {
+            var x = Random.Range(0, sizeX - 1);
+            var y = Random.Range(0, sizeY - 1);
+
+            if (cellDataList[y * sizeX + x] > 0)
+            {
+                cellDataList[y * sizeX + x] = 6;
+                i--;
+            }
+        }
+
+        //добавляем 2 столицы
+        i = 2;
+        while (i > 0)
+        {
+            var x = Random.Range(0, sizeX - 1);
+            var y = Random.Range(0, sizeY - 1);
+
+            if (cellDataList[y * sizeX + x] > 0)
+            {
+                cellDataList[y * sizeX + x] = 7;
                 i--;
             }
         }
@@ -128,7 +164,7 @@ public class GridLayer : MonoBehaviour
         get
         {
             if (x + y < 0) return null;
-            if (x + y >= sizeX * sizeY) return null;
+            if (y * sizeX + x >= cellViewList.Count) return null;
             return cellViewList[y * sizeX + x];
         }
     }
