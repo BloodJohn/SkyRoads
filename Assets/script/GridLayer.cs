@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class GridLayer : MonoBehaviour
 {
@@ -49,7 +51,7 @@ public class GridLayer : MonoBehaviour
                 else
                 {
                     var rnd = Random.Range(1, 10);
-                    if (rnd <=4)
+                    if (rnd <= 4)
                         cellDataList.Add(1); //луга
                     else if (rnd <= 7)
                         cellDataList.Add(2); //лес
@@ -151,6 +153,8 @@ public class GridLayer : MonoBehaviour
                 if (difference.x < 0) difference *= -1f;
                 var angle = Vector2.Angle(Vector2.down, difference);
                 newBridge.transform.Rotate(0, 0, angle);
+
+                CoreGame.Instance.BuildBridge(clickCell.id);
             }
 
         return clickCell.hasBridge;
@@ -183,18 +187,12 @@ public class GridLayer : MonoBehaviour
             yield return this[cell.x - 1, cell.y];
     }
 
+    /// <summary>считаем объединения в одну дорогу</summary>
     public bool OneRoadTest()
     {
         int roadNum = 1;
 
-        for (var y = 0; y < sizeY; y++)
-            for (var x = 0; x < sizeX; x++)
-            {
-                var cell = this[x, y];
-                if (null == cell) continue;
-                if (!cell.hasBridge) cell.roadTest = 0;
-                cell.roadTest = int.MaxValue;
-            }
+        ClearRoadTest();
 
         for (var y = 0; y < sizeY; y++)
             for (var x = 0; x < sizeX; x++)
@@ -209,10 +207,11 @@ public class GridLayer : MonoBehaviour
                 roadNum++;
             }
 
-        Debug.LogFormat("RoadTest {0}", roadNum-1);
+        //Debug.LogFormat("RoadTest {0}", roadNum - 1);
         return roadNum == 2;
     }
 
+    /// <summary>помечаем все клетки эти номером дороги</summary>
     private void MarkAllRoad(CellView townCell)
     {
         foreach (var nearCell in GetNear(townCell))
@@ -221,5 +220,78 @@ public class GridLayer : MonoBehaviour
                 nearCell.roadTest = townCell.roadTest;
                 MarkAllRoad(nearCell);
             }
+    }
+
+    public int AllTradeTest()
+    {
+        var result = 0;
+
+        for (var i = 0; i < cellViewList.Count; i++)
+        {
+            var cell = cellViewList[i];
+            if (null == cell) continue;
+            if (cell.IsTown)
+                result += GetTradeProfit(cell);
+        }
+
+        return result;
+    }
+
+    /// <summary>все города с которыми торгует этот город</summary>
+    private int GetTradeProfit(CellView townCell)
+    {
+        ClearRoadTest();
+        var currentWave = 0;
+        switch (townCell.id)
+        {
+            case 5:
+                currentWave = 5;
+                break;
+            case 6:
+                currentWave = 10;
+                break;
+            case 7:
+                currentWave = 15;
+                break;
+        }
+        var result = 0;
+        townCell.roadTest = currentWave;
+        
+        while (currentWave > 0)
+        {
+            var nextRoad = false;
+            for (var i = 0; i < cellViewList.Count; i++)
+            {
+                var cell = cellViewList[i];
+                if (cell==null) continue;
+                if (cell.roadTest!=currentWave) continue;
+
+                foreach (var nearCell in GetNear(cell))
+                    if (nearCell.roadTest == Int32.MaxValue)
+                    {
+                        nextRoad = true;
+                        nearCell.roadTest = currentWave - 1;
+                        if (nearCell.IsTown)
+                            result += currentWave -1;
+                    }
+            }
+
+            if (nextRoad)
+                currentWave--;
+            else
+                currentWave = 0;
+        }
+
+        return result;
+    }
+
+    private void ClearRoadTest()
+    {
+        for (var i = 0; i < cellViewList.Count; i++)
+        {
+            var cell = cellViewList[i];
+            if (null == cell) continue;
+            cell.roadTest = cell.hasBridge ? int.MaxValue : cell.roadTest;
+        }
     }
 }
