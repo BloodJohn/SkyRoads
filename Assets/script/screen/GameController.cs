@@ -21,7 +21,8 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.touchSupported)
+        //баузер показывает поддержку мультитача (на самом деле нет)
+        /*if (Input.touchSupported)
         {
             foreach (var touch in Input.touches)
             {
@@ -32,7 +33,7 @@ public class GameController : MonoBehaviour
                 }
             }
         }
-        else
+        else*/
         {
             if (Input.GetMouseButton(0)) //GetMouseDown
             {

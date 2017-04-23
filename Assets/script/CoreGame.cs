@@ -31,6 +31,9 @@ public class CoreGame : MonoBehaviour
     {
         level = 0;
         money = 20;
+        tradeRate = 0;
+        buildRate = 0;
+        currentRate = 0;
     }
 
     public void WinLevel()
@@ -65,7 +68,7 @@ public class CoreGame : MonoBehaviour
 
     public void SetTrade(int profit)
     {
-        tradeRate = profit / (50 + level*5);
+        tradeRate = profit/(40+ level);
         buildRate = currentRate;
         currentRate = 0;
 

@@ -144,6 +144,7 @@ public class GridLayer : MonoBehaviour
             {
                 clickCell.hasBridge = true;
                 var newBridge = Instantiate(bridgePrefab, transform);
+                bridgeViewList.Add(newBridge.GetComponent<BridgeView>());
 
                 var pos = (clickCell.transform.position + nearCell.transform.position) / 2;
                 pos.z = Mathf.Min(clickCell.transform.position.z, nearCell.transform.position.z) - 0.01f;
@@ -224,7 +225,7 @@ public class GridLayer : MonoBehaviour
 
     public int AllTradeTest()
     {
-        var result = 0;
+        var result = -bridgeViewList.Count*3;
 
         for (var i = 0; i < cellViewList.Count; i++)
         {
@@ -233,7 +234,7 @@ public class GridLayer : MonoBehaviour
             if (cell.IsTown)
                 result += GetTradeProfit(cell);
         }
-
+         
         return result;
     }
 
