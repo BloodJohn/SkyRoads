@@ -7,6 +7,11 @@ public class SoundManager : MonoBehaviour
 
     [SerializeField]
     private GameObject Music;
+    [SerializeField]
+    private AudioSource Sound;
+
+    [SerializeField] private AudioClip LevelComplete;
+    [SerializeField] private AudioClip GameOver;
 
     private static readonly string SoundKey = "muteSound";
 
@@ -45,5 +50,21 @@ public class SoundManager : MonoBehaviour
     {
         if (!IsSound) return;
         Music.SetActive(true);
+    }
+
+    public void PlayLevelComplete()
+    {
+        if (!IsSound) return;
+        Sound.clip = LevelComplete;
+        Sound.pitch = Random.Range(0.6f, 1.2f);
+        Sound.Play();
+    }
+
+    public void PlayGameOver()
+    {
+        if (!IsSound) return;
+        Sound.clip = GameOver;
+        Sound.pitch = Random.Range(0.6f, 1.2f);
+        Sound.Play();
     }
 }

@@ -13,6 +13,11 @@ public class WinController : MonoBehaviour
         Random.InitState(DateTime.Now.Millisecond);
     }
 
+    void Start()
+    {
+        SoundManager.Instance.PlayLevelComplete();
+    }
+
     public void ClickBackground()
     {
         SceneManager.LoadScene(GameController.sceneName);

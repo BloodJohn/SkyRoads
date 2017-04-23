@@ -17,6 +17,11 @@ public class DefeatController : MonoBehaviour {
         scoreText.text = string.Format("Completed {0} levels", CoreGame.Instance.level);
     }
 
+    void Start()
+    {
+        SoundManager.Instance.PlayGameOver();
+    }
+
     public void ClickBackground()
     {
         CoreGame.Instance.StartGame();
