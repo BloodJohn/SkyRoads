@@ -68,8 +68,9 @@ public class GameController : MonoBehaviour
                 if (grid.BuildBridge(cell))
                 {
                     var trade = grid.AllTradeTest();
-                    Debug.LogFormat("trade: {0}", trade);
                     CoreGame.Instance.SetTrade(trade);
+                    Debug.LogFormat("trade: {0} money: {1}", trade, CoreGame.Instance.money);
+
 
                     if (CoreGame.Instance.money>0)
                         ShowStats();
