@@ -131,6 +131,10 @@ public class GridLayer : MonoBehaviour
                 cell.id = id;
                 cell.x = x;
                 cell.y = y;
+
+                cell.speed = Random.Range(-5f, 5f);
+
+                if (x != y) cell.speed += (x-y);
             }
         }
     }
@@ -293,6 +297,33 @@ public class GridLayer : MonoBehaviour
             var cell = cellViewList[i];
             if (null == cell) continue;
             cell.roadTest = cell.hasBridge ? int.MaxValue : cell.roadTest;
+        }
+    }
+
+    public void Fly(float time)
+    {
+        for (var i = 0; i < cellViewList.Count; i++)
+        {
+            var cell = cellViewList[i];
+            if (null != cell) cell.Fly(time);
+        }
+    }
+
+    public void FlyDown(float time)
+    {
+        for (var i = 0; i < cellViewList.Count; i++)
+        {
+            var cell = cellViewList[i];
+            if (null != cell) cell.FlyDown(time);
+        }
+    }
+
+    public void HideBridge()
+    {
+        for (var i = 0; i < bridgeViewList.Count; i++)
+        {
+            var bridge = bridgeViewList[i];
+            bridge.gameObject.SetActive(false);
         }
     }
 }
