@@ -10,111 +10,28 @@ public class GridLayer : MonoBehaviour
     public float dx = 0.737f;
     public float dy = 0.426f;
 
-    public int sizeX = 3;
-    public int sizeY = 3;
-
-    public int trimX = 1;
-    public int trimY = 1;
-
-    private List<int> cellDataList;
-    private List<CellView> cellViewList;
+    private readonly List<CellView> cellViewList = new List<CellView>(CoreGame.sizeX * CoreGame.sizeY);
 
     private readonly List<BridgeView> bridgeViewList = new List<BridgeView>();
 
     void Awake()
     {
-        cellDataList = new List<int>(sizeX * sizeY);
-        cellViewList = new List<CellView>(sizeX * sizeY);
-
-        for (var y = 0; y < sizeY; y++)
-            for (var x = 0; x < sizeX; x++)
-            {
-                cellViewList.Add(null);
-
-                if (x + y < trimX)
-                {
-                    cellDataList.Add(0);
-                }
-                else if (sizeX - 1 - x + sizeY - 1 - y < trimX)
-                {
-                    cellDataList.Add(0);
-                }
-                else if (sizeX - 1 - x + y < trimY)
-                {
-                    cellDataList.Add(0);
-                }
-                else if (x + sizeY - 1 - y < trimY)
-                {
-                    cellDataList.Add(0);
-                }
-                else
-                {
-                    var rnd = Random.Range(1, 10);
-                    if (rnd <= 4)
-                        cellDataList.Add(1); //луга
-                    else if (rnd <= 7)
-                        cellDataList.Add(2); //лес
-                    else if (rnd <= 8)
-                        cellDataList.Add(3); //горы
-                    else
-                        cellDataList.Add(4); //вода
-                }
-            }
-
-        //добавляем 4 поселков
-        var i = 4;
-        while (i > 0)
-        {
-            var x = Random.Range(0, sizeX - 1);
-            var y = Random.Range(0, sizeY - 1);
-
-            if (cellDataList[y * sizeX + x] > 0)
-            {
-                cellDataList[y * sizeX + x] = 5;
-                i--;
-            }
-        }
-
-        //добавляем 3 городов
-        i = 3;
-        while (i > 0)
-        {
-            var x = Random.Range(0, sizeX - 1);
-            var y = Random.Range(0, sizeY - 1);
-
-            if (cellDataList[y * sizeX + x] > 0)
-            {
-                cellDataList[y * sizeX + x] = 6;
-                i--;
-            }
-        }
-
-        //добавляем 2 столицы
-        i = 2;
-        while (i > 0)
-        {
-            var x = Random.Range(0, sizeX - 1);
-            var y = Random.Range(0, sizeY - 1);
-
-            if (cellDataList[y * sizeX + x] > 0)
-            {
-                cellDataList[y * sizeX + x] = 7;
-                i--;
-            }
-        }
+        CoreGame.Instance.CreateLevelMap();
+        for (var i=0; i < CoreGame.Instance.CellDataList.Count; i++)
+           cellViewList.Add(null);
     }
 
     public void BuildGrid()
     {
         var shiftX = new Vector3(dx, -dy);
         var shiftY = new Vector3(-dx, -dy);
-        var topShift = new Vector3(0f, dy * (sizeX + sizeY) / 2);
+        var topShift = new Vector3(0f, dy * (CoreGame.sizeX + CoreGame.sizeY) / 2);
 
-        for (var x = 0; x < sizeX; x++)
+        for (var x = 0; x < CoreGame.sizeX; x++)
         {
-            for (var y = 0; y < sizeY; y++)
+            for (var y = 0; y < CoreGame.sizeY; y++)
             {
-                var id = cellDataList[y * sizeX + x];
+                var id = CoreGame.Instance.CellDataList[y * CoreGame.sizeX + x];
                 if (id == 0) continue;
 
                 var newCell = Instantiate(cellPrefab[id - 1], transform);
@@ -126,7 +43,7 @@ public class GridLayer : MonoBehaviour
                 newCell.name = string.Format("cell_{0}_{1}", x, y);
 
                 var cell = newCell.GetComponent<CellView>();
-                cellViewList[y * sizeX + x] = cell;
+                cellViewList[y * CoreGame.sizeX + x] = cell;
                 cell.id = id;
                 cell.x = x;
                 cell.y = y;
@@ -168,7 +85,7 @@ public class GridLayer : MonoBehaviour
     {
         get
         {
-            var index = y * sizeX + x;
+            var index = y * CoreGame.sizeX + x;
             if (index < 0) return null;
             if (index >= cellViewList.Count) return null;
             return cellViewList[index];
@@ -198,8 +115,8 @@ public class GridLayer : MonoBehaviour
 
         ClearRoadTest();
 
-        for (var y = 0; y < sizeY; y++)
-            for (var x = 0; x < sizeX; x++)
+        for (var y = 0; y < CoreGame.sizeY; y++)
+            for (var x = 0; x < CoreGame.sizeX; x++)
             {
                 var cell = this[x, y];
                 if (null == cell) continue;

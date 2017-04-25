@@ -77,10 +77,9 @@ public class GameController : MonoBehaviour
             CoreGame.Instance.SetTrade(trade);
             Debug.LogFormat("trade: {0} money: {1}", trade, CoreGame.Instance.money);
 
+            ShowStats();
 
-            if (CoreGame.Instance.money>0)
-                ShowStats();
-            else
+            if (CoreGame.Instance.money<=0)
             {
                 Debug.LogFormat("GAME OVER");
                 speed = 1f;

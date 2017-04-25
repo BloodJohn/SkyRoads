@@ -9,6 +9,7 @@ public class WinController : MonoBehaviour
 
     public const string sceneName = "win";
     public Text scoreText;
+    public Text levelText;
 
     void Awake()
     {
@@ -19,6 +20,7 @@ public class WinController : MonoBehaviour
     {
         SoundManager.Instance.PlayLevelComplete();
         scoreText.text = CoreGame.Instance.money.ToString();
+        levelText.text = string.Format("{0} level", CoreGame.Instance.level);
     }
 
     public void ClickBackground()
