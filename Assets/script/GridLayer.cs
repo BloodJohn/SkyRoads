@@ -146,9 +146,10 @@ public class GridLayer : MonoBehaviour
     public int AllTradeTest()
     {
         var result = -bridgeViewList.Count*3;
+        //var result = 0;
 
         for (var i = 0; i < cellViewList.Count; i++)
-        {
+        { 
             var cell = cellViewList[i];
             if (null == cell) continue;
             if (cell.IsTown)
