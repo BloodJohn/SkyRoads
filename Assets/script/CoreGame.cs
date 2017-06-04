@@ -7,11 +7,11 @@ public class CoreGame : MonoBehaviour
     /// <summary>Ключ куда мы сохраним игру</summary>
     public const string GameSaveKey = "gameSave";
 
-    public const int sizeX = 13;
-    public const int sizeY = 13;
+    public const int MapSizeX = 11;
+    public const int MapSizeY = 11;
 
-    public const int trimX = 3;
-    public const int trimY = 9;
+    private const int MapTrimX = 2;
+    private const int MapTrimY = 7;
     #endregion
 
     #region variables
@@ -22,7 +22,7 @@ public class CoreGame : MonoBehaviour
     public int buildRate;
     public int tradeRate;
     public int level;
-    public readonly List<int> CellDataList = new List<int>(sizeX * sizeY);
+    public readonly List<int> CellDataList = new List<int>(MapSizeX * MapSizeY);
     #endregion
 
     #region constructor
@@ -39,22 +39,22 @@ public class CoreGame : MonoBehaviour
     {
         CellDataList.Clear();
 
-        for (var y = 0; y < sizeY; y++)
-            for (var x = 0; x < sizeX; x++)
+        for (var y = 0; y < MapSizeY; y++)
+            for (var x = 0; x < MapSizeX; x++)
             {
-                if (x + y < trimX)
+                if (x + y < MapTrimX)
                 {
                     CellDataList.Add(0);
                 }
-                else if (sizeX - 1 - x + sizeY - 1 - y < trimX)
+                else if (MapSizeX - 1 - x + MapSizeY - 1 - y < MapTrimX)
                 {
                     CellDataList.Add(0);
                 }
-                else if (sizeX - 1 - x + y < trimY)
+                else if (MapSizeX - 1 - x + y < MapTrimY)
                 {
                     CellDataList.Add(0);
                 }
-                else if (x + sizeY - 1 - y < trimY)
+                else if (x + MapSizeY - 1 - y < MapTrimY)
                 {
                     CellDataList.Add(0);
                 }
@@ -113,7 +113,7 @@ public class CoreGame : MonoBehaviour
     public void StartGame()
     {
         level = 0;
-        money = 15;
+        money = 100;
         tradeRate = 0;
         buildRate = 0;
         currentRate = 0;
@@ -133,16 +133,16 @@ public class CoreGame : MonoBehaviour
         switch (cellId)
         {
             case 1:
-                rate = 1; //поля
+                rate = 5; //поля
                 break;
             case 2:
-                rate = 2; // лес
+                rate = 10; // лес
                 break;
             case 3:
-                rate = 3; // горы
+                rate = 15; // горы
                 break;
             case 4:
-                rate = 4; // лес
+                rate = 20; // лес
                 break;
         }
 
@@ -151,11 +151,11 @@ public class CoreGame : MonoBehaviour
 
     public void SetTrade(int profit)
     {
-        tradeRate = profit/50;
+        tradeRate = profit/10;
         buildRate = currentRate;
         currentRate = 0;
-
-        money += tradeRate - buildRate;
+         
+        money += (int)tradeRate - buildRate;
     }
     #endregion
 }

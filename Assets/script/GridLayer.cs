@@ -10,28 +10,28 @@ public class GridLayer : MonoBehaviour
     public float dx = 0.737f;
     public float dy = 0.426f;
 
-    private readonly List<CellView> cellViewList = new List<CellView>(CoreGame.sizeX * CoreGame.sizeY);
+    private readonly List<CellView> cellViewList = new List<CellView>(CoreGame.MapSizeX * CoreGame.MapSizeY);
 
     private readonly List<BridgeView> bridgeViewList = new List<BridgeView>();
 
     void Awake()
     {
         CoreGame.Instance.CreateLevelMap();
-        for (var i=0; i < CoreGame.Instance.CellDataList.Count; i++)
-           cellViewList.Add(null);
+        for (var i = 0; i < CoreGame.Instance.CellDataList.Count; i++)
+            cellViewList.Add(null);
     }
 
     public void BuildGrid()
     {
         var shiftX = new Vector3(dx, -dy);
         var shiftY = new Vector3(-dx, -dy);
-        var topShift = new Vector3(0f, dy * (CoreGame.sizeX + CoreGame.sizeY) / 2);
+        var topShift = new Vector3(0f, dy * (CoreGame.MapSizeX + CoreGame.MapSizeY) / 2);
 
-        for (var x = 0; x < CoreGame.sizeX; x++)
+        for (var x = 0; x < CoreGame.MapSizeX; x++)
         {
-            for (var y = 0; y < CoreGame.sizeY; y++)
+            for (var y = 0; y < CoreGame.MapSizeY; y++)
             {
-                var id = CoreGame.Instance.CellDataList[y * CoreGame.sizeX + x];
+                var id = CoreGame.Instance.CellDataList[y * CoreGame.MapSizeX + x];
                 if (id == 0) continue;
 
                 var newCell = Instantiate(cellPrefab[id - 1], transform);
@@ -43,14 +43,14 @@ public class GridLayer : MonoBehaviour
                 newCell.name = string.Format("cell_{0}_{1}", x, y);
 
                 var cell = newCell.GetComponent<CellView>();
-                cellViewList[y * CoreGame.sizeX + x] = cell;
+                cellViewList[y * CoreGame.MapSizeX + x] = cell;
                 cell.id = id;
                 cell.x = x;
                 cell.y = y;
 
                 cell.speed = Random.Range(-5f, 5f);
 
-                if (x != y) cell.speed += (x-y);
+                if (x != y) cell.speed += (x - y);
             }
         }
     }
@@ -63,17 +63,7 @@ public class GridLayer : MonoBehaviour
             if (nearCell.hasBridge)
             {
                 clickCell.hasBridge = true;
-                var newBridge = Instantiate(bridgePrefab, transform);
-                bridgeViewList.Add(newBridge.GetComponent<BridgeView>());
-
-                var pos = (clickCell.transform.position + nearCell.transform.position) / 2;
-                pos.z = Mathf.Min(clickCell.transform.position.z, nearCell.transform.position.z) - 0.01f;
-                newBridge.transform.position = pos;
-
-                var difference = clickCell.transform.position - nearCell.transform.position;
-                if (difference.x < 0) difference *= -1f;
-                var angle = Vector2.Angle(Vector2.down, difference);
-                newBridge.transform.Rotate(0, 0, angle);
+                CreateBridge(clickCell, nearCell);
 
                 CoreGame.Instance.BuildBridge(clickCell.id);
             }
@@ -81,11 +71,48 @@ public class GridLayer : MonoBehaviour
         return clickCell.hasBridge;
     }
 
+    public void BuildCityBridge()
+    {
+        foreach (var cell in cellViewList)
+        {
+            if (cell==null) continue;
+            if (!cell.IsTown) continue;
+
+            foreach (var nearCell in GetNear(cell))
+            {
+                if (!nearCell.IsTown) continue;
+                if (nearCell.y < cell.y) continue;
+                if (nearCell.x < cell.x) continue;
+
+                var newBridge = CreateBridge(cell,nearCell);
+                newBridge.SetAlpha(0.6f);
+            }
+        }
+    }
+
+    private BridgeView CreateBridge(CellView fromCell, CellView toCell)
+    {
+        var newObject = Instantiate(bridgePrefab, transform);
+        var newBridge = newObject.GetComponent<BridgeView>();
+        bridgeViewList.Add(newBridge);
+
+        var pos = (fromCell.transform.position + toCell.transform.position) / 2;
+        pos.z = Mathf.Min(fromCell.transform.position.z, toCell.transform.position.z) - 0.01f;
+        newObject.transform.position = pos;
+
+        var difference = fromCell.transform.position - toCell.transform.position;
+        if (difference.x < 0) difference *= -1f;
+        var angle = Vector2.Angle(Vector2.down, difference);
+        newObject.transform.Rotate(0, 0, angle);
+
+        return newBridge;
+    }
+
     private CellView this[int x, int y]
     {
         get
         {
-            var index = y * CoreGame.sizeX + x;
+            var index = y * CoreGame.MapSizeX + x;
             if (index < 0) return null;
             if (index >= cellViewList.Count) return null;
             return cellViewList[index];
@@ -115,8 +142,8 @@ public class GridLayer : MonoBehaviour
 
         ClearRoadTest();
 
-        for (var y = 0; y < CoreGame.sizeY; y++)
-            for (var x = 0; x < CoreGame.sizeX; x++)
+        for (var y = 0; y < CoreGame.MapSizeY; y++)
+            for (var x = 0; x < CoreGame.MapSizeX; x++)
             {
                 var cell = this[x, y];
                 if (null == cell) continue;
@@ -145,17 +172,17 @@ public class GridLayer : MonoBehaviour
 
     public int AllTradeTest()
     {
-        var result = -bridgeViewList.Count*3;
-        //var result = 0;
+        //var result = -bridgeViewList.Count * 3;
+        var result = 0;
 
         for (var i = 0; i < cellViewList.Count; i++)
-        { 
+        {
             var cell = cellViewList[i];
             if (null == cell) continue;
             if (cell.IsTown)
                 result += GetTradeProfit(cell);
         }
-         
+
         return result;
     }
 
@@ -178,15 +205,15 @@ public class GridLayer : MonoBehaviour
         }
         var result = 0;
         townCell.roadTest = currentWave;
-        
+
         while (currentWave > 0)
         {
             var nextRoad = false;
             for (var i = 0; i < cellViewList.Count; i++)
             {
                 var cell = cellViewList[i];
-                if (cell==null) continue;
-                if (cell.roadTest!=currentWave) continue;
+                if (cell == null) continue;
+                if (cell.roadTest != currentWave) continue;
 
                 foreach (var nearCell in GetNear(cell))
                     if (nearCell.roadTest == Int32.MaxValue)
@@ -194,7 +221,7 @@ public class GridLayer : MonoBehaviour
                         nextRoad = true;
                         nearCell.roadTest = currentWave - 1;
                         if (nearCell.IsTown)
-                            result += currentWave -1;
+                            result += currentWave - 1;
                     }
             }
 

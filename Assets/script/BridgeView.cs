@@ -1,14 +1,12 @@
 ﻿using UnityEngine;
 
-public class BridgeView : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+public class BridgeView : MonoBehaviour
+{
+    public void SetAlpha(float a)
+    {
+        var sprite = GetComponentInChildren<SpriteRenderer>();
+        var color = sprite.color;
+        color.a = a;
+        sprite.color = color;
+    }
 }

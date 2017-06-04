@@ -10,6 +10,7 @@ public class LoadController : MonoBehaviour
     void Awake()
     {
         Random.InitState(DateTime.Now.Millisecond);
+        Application.targetFrameRate = 10;
     }
 
     public void ClickBackground()

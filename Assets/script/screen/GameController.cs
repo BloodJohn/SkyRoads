@@ -110,6 +110,7 @@ public class GameController : MonoBehaviour
             grid.Fly(0f);
             speed = 0f;
 
+            StartLevel();
             return false; //начало игры
         }
 
@@ -136,6 +137,20 @@ public class GameController : MonoBehaviour
             grid.Fly(time);
         }
         return true;
+    }
+
+    private void StartLevel()
+    {
+        grid.BuildCityBridge();
+        var trade = grid.AllTradeTest();
+        CoreGame.Instance.SetTrade(trade);
+        Debug.LogFormat("start trade: {0}", trade);
+        ShowStats();
+    }
+
+    private void CompleteLevel()
+    {
+        
     }
     #endregion
 }
