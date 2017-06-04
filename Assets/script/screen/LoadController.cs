@@ -15,7 +15,7 @@ public class LoadController : MonoBehaviour
 
     public void ClickBackground()
     {
-        CoreGame.Instance.StartGame();
+        CoreGame.Instance.LoadGame();
         SceneManager.LoadScene(GameController.sceneName);
     }
 }

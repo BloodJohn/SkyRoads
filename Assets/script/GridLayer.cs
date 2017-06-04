@@ -5,33 +5,115 @@ using Random = UnityEngine.Random;
 
 public class GridLayer : MonoBehaviour
 {
+    private const int MapSizeX = 11;
+    private const int MapSizeY = 11;
+
+    private const int MapTrimX = 2;
+    private const int MapTrimY = 7;
+    public readonly List<int> CellDataList = new List<int>(MapSizeX * MapSizeY);
+
     public List<GameObject> cellPrefab;
     public GameObject bridgePrefab;
     public float dx = 0.737f;
     public float dy = 0.426f;
 
-    private readonly List<CellView> cellViewList = new List<CellView>(CoreGame.MapSizeX * CoreGame.MapSizeY);
+    private readonly List<CellView> cellViewList = new List<CellView>(MapSizeX * MapSizeY);
 
     private readonly List<BridgeView> bridgeViewList = new List<BridgeView>();
 
     void Awake()
     {
-        CoreGame.Instance.CreateLevelMap();
-        for (var i = 0; i < CoreGame.Instance.CellDataList.Count; i++)
+        CreateLevelMap();
+        for (var i = 0; i < CellDataList.Count; i++)
             cellViewList.Add(null);
+    }
+
+    private void CreateLevelMap()
+    {
+        var level = CoreGame.Instance.level;
+        CellDataList.Clear();
+
+        for (var y = 0; y < MapSizeY; y++)
+            for (var x = 0; x < MapSizeX; x++)
+            {
+                if (x + y < MapTrimX)
+                {
+                    CellDataList.Add(0);
+                }
+                else if (MapSizeX - 1 - x + MapSizeY - 1 - y < MapTrimX)
+                {
+                    CellDataList.Add(0);
+                }
+                else if (MapSizeX - 1 - x + y < MapTrimY)
+                {
+                    CellDataList.Add(0);
+                }
+                else if (x + MapSizeY - 1 - y < MapTrimY)
+                {
+                    CellDataList.Add(0);
+                }
+                else
+                {
+                    var rnd = Random.Range(1, 10);
+                    if (rnd == 1 || rnd <= 5 - level / 4)
+                        CellDataList.Add(1); //луга
+                    else if (rnd == 2 || rnd <= 8 - level / 8)
+                        CellDataList.Add(2); //лес
+                    else if (rnd == 3 || rnd <= 9 - level / 16)
+                        CellDataList.Add(3); //горы
+                    else
+                        CellDataList.Add(4); //вода
+                }
+            }
+
+        //добавляем 4 поселков
+        var i = 4;
+        while (i > 0)
+        {
+            var index = Random.Range(0, CellDataList.Count);
+            if (CellDataList[index] > 0)
+            {
+                CellDataList[index] = 5;
+                i--;
+            }
+        }
+
+        //добавляем 3 городов
+        i = 3;
+        while (i > 0)
+        {
+            var index = Random.Range(0, CellDataList.Count);
+            if (CellDataList[index] > 0)
+            {
+                CellDataList[index] = 6;
+                i--;
+            }
+        }
+
+        //добавляем 2 столицы
+        i = 2;
+        while (i > 0)
+        {
+            var index = Random.Range(0, CellDataList.Count);
+            if (CellDataList[index] > 0)
+            {
+                CellDataList[index] = 7;
+                i--;
+            }
+        }
     }
 
     public void BuildGrid()
     {
         var shiftX = new Vector3(dx, -dy);
         var shiftY = new Vector3(-dx, -dy);
-        var topShift = new Vector3(0f, dy * (CoreGame.MapSizeX + CoreGame.MapSizeY) / 2);
+        var topShift = new Vector3(0f, dy * (MapSizeX + MapSizeY) / 2);
 
-        for (var x = 0; x < CoreGame.MapSizeX; x++)
+        for (var x = 0; x < MapSizeX; x++)
         {
-            for (var y = 0; y < CoreGame.MapSizeY; y++)
+            for (var y = 0; y < MapSizeY; y++)
             {
-                var id = CoreGame.Instance.CellDataList[y * CoreGame.MapSizeX + x];
+                var id = CellDataList[y * MapSizeX + x];
                 if (id == 0) continue;
 
                 var newCell = Instantiate(cellPrefab[id - 1], transform);
@@ -43,7 +125,7 @@ public class GridLayer : MonoBehaviour
                 newCell.name = string.Format("cell_{0}_{1}", x, y);
 
                 var cell = newCell.GetComponent<CellView>();
-                cellViewList[y * CoreGame.MapSizeX + x] = cell;
+                cellViewList[y * MapSizeX + x] = cell;
                 cell.id = id;
                 cell.x = x;
                 cell.y = y;
@@ -112,7 +194,7 @@ public class GridLayer : MonoBehaviour
     {
         get
         {
-            var index = y * CoreGame.MapSizeX + x;
+            var index = y * MapSizeX + x;
             if (index < 0) return null;
             if (index >= cellViewList.Count) return null;
             return cellViewList[index];
@@ -142,8 +224,8 @@ public class GridLayer : MonoBehaviour
 
         ClearRoadTest();
 
-        for (var y = 0; y < CoreGame.MapSizeY; y++)
-            for (var x = 0; x < CoreGame.MapSizeX; x++)
+        for (var y = 0; y < MapSizeY; y++)
+            for (var x = 0; x < MapSizeX; x++)
             {
                 var cell = this[x, y];
                 if (null == cell) continue;
