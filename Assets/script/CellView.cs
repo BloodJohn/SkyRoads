@@ -7,6 +7,7 @@ public class CellView : MonoBehaviour
     public int y;
     public bool hasBridge;
     public int roadTest;
+    public GameObject prefabScore;
     private GameObject body;
     public bool IsTown { get { return id >= 5; } }
     public float speed;
@@ -29,4 +30,19 @@ public class CellView : MonoBehaviour
         body.transform.localPosition = pos;
     }
 
+
+    public void ShowScore(float score)
+    {
+        //Debug.LogFormat("score: {0}", score);
+        if (Mathf.Abs(score)<0.2f) return;
+
+        if (prefabScore==null) return;
+        var scoreFly = Instantiate(prefabScore, transform);
+
+        var flyText = scoreFly.GetComponentInChildren<TextMesh>();
+        flyText.text = Mathf.Abs(score).ToString("0.#");
+        flyText.color = score>0f ? Color.green : Color.red;
+
+        Destroy(scoreFly, 1f);
+    }
 }

@@ -1,20 +1,20 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CoreGame : MonoBehaviour
 {
     #region const
     /// <summary>Ключ куда мы сохраним игру</summary>
-    public const string MoneySaveKey = "moneySave";
+    private const string MoneySaveKey = "moneySave";
     /// <summary>Ключ куда мы сохраним игру</summary>
-    public const string LevelSaveKey = "levelSave";
+    private const string LevelSaveKey = "levelSave";
+
+    public const int TradePart = 5; //10
     #endregion
 
     #region variables
     public static CoreGame Instance;
     /// <summary>Деньги на счету игрока</summary>
     public int money;
-    private int currentRate;
     public int buildRate;
     public int tradeRate;
     public int level;
@@ -35,7 +35,6 @@ public class CoreGame : MonoBehaviour
         money = 100;
         tradeRate = 0;
         buildRate = 0;
-        currentRate = 0;
         PlayerPrefs.SetInt(LevelSaveKey,level);
         PlayerPrefs.SetInt(MoneySaveKey, money);
         PlayerPrefs.Save();
@@ -47,7 +46,6 @@ public class CoreGame : MonoBehaviour
         money = PlayerPrefs.GetInt(MoneySaveKey, 100);
         tradeRate = 0;
         buildRate = 0;
-        currentRate = 0;
     }
 
     public void WinLevel()
@@ -55,14 +53,13 @@ public class CoreGame : MonoBehaviour
         level++;
         tradeRate = 0;
         buildRate = 0;
-        currentRate = 0;
 
         PlayerPrefs.SetInt(LevelSaveKey,level);
         PlayerPrefs.SetInt(MoneySaveKey, money);
         PlayerPrefs.Save();
     }
 
-    public void BuildBridge(int cellId)
+    public int BuildBridge(int cellId)
     {
         var rate = 0;
         switch (cellId)
@@ -80,17 +77,20 @@ public class CoreGame : MonoBehaviour
                 rate = 40; // лес
                 break;
         }
-
-        currentRate += rate;
+        return rate;
     }
 
-    public void SetTrade(int profit)
+    public void CompleteBuild(int currentRate)
     {
-        tradeRate = profit/10;
         buildRate = currentRate;
-        currentRate = 0;
-         
-        money += (int)tradeRate - buildRate;
+        money -= buildRate;
+
+    }
+
+    public void CompleteRoad(int profit)
+    {
+        tradeRate = profit/ TradePart;
+        money += (int)tradeRate;
     }
     #endregion
 }

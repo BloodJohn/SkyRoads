@@ -55,11 +55,11 @@ public class GridLayer : MonoBehaviour
                 else
                 {
                     var rnd = Random.Range(1, 10);
-                    if (rnd == 1 || rnd <= 5 - level / 4)
+                    if (rnd == 1 || rnd <= 5 - level / 2)
                         CellDataList.Add(1); //луга
-                    else if (rnd == 2 || rnd <= 8 - level / 8)
+                    else if (rnd == 2 || rnd <= 8 - level / 4)
                         CellDataList.Add(2); //лес
-                    else if (rnd == 3 || rnd <= 9 - level / 16)
+                    else if (rnd == 3 || rnd <= 9 - level / 8)
                         CellDataList.Add(3); //горы
                     else
                         CellDataList.Add(4); //вода
@@ -140,16 +140,18 @@ public class GridLayer : MonoBehaviour
     public bool BuildBridge(CellView clickCell)
     {
         if (clickCell.hasBridge) return false;
-
+        var buildRate = 0;
         foreach (var nearCell in GetNear(clickCell))
             if (nearCell.hasBridge)
             {
                 clickCell.hasBridge = true;
-                CreateBridge(clickCell, nearCell);
-
-                CoreGame.Instance.BuildBridge(clickCell.id);
+                var bridge = CreateBridge(clickCell, nearCell);
+                var cost = CoreGame.Instance.BuildBridge(clickCell.id);
+                bridge.ShowScore(-cost);
+                buildRate += cost;
             }
 
+        CoreGame.Instance.CompleteBuild(buildRate);
         return clickCell.hasBridge;
     }
 
@@ -203,24 +205,18 @@ public class GridLayer : MonoBehaviour
 
     private IEnumerable<CellView> GetNear(CellView cell)
     {
-        if (this[cell.x - 1, cell.y - 1] != null)
-            yield return this[cell.x - 1, cell.y - 1];
-        if (this[cell.x, cell.y - 1] != null)
-            yield return this[cell.x, cell.y - 1];
-        if (this[cell.x + 1, cell.y] != null)
-            yield return this[cell.x + 1, cell.y];
-        if (this[cell.x + 1, cell.y + 1] != null)
-            yield return this[cell.x + 1, cell.y + 1];
-        if (this[cell.x, cell.y + 1] != null)
-            yield return this[cell.x, cell.y + 1];
-        if (this[cell.x - 1, cell.y] != null)
-            yield return this[cell.x - 1, cell.y];
+        if (this[cell.x - 1, cell.y - 1] != null) yield return this[cell.x - 1, cell.y - 1];
+        if (this[cell.x, cell.y - 1] != null) yield return this[cell.x, cell.y - 1];
+        if (this[cell.x + 1, cell.y] != null) yield return this[cell.x + 1, cell.y];
+        if (this[cell.x + 1, cell.y + 1] != null) yield return this[cell.x + 1, cell.y + 1];
+        if (this[cell.x, cell.y + 1] != null) yield return this[cell.x, cell.y + 1];
+        if (this[cell.x - 1, cell.y] != null) yield return this[cell.x - 1, cell.y];
     }
 
     /// <summary>считаем объединения в одну дорогу</summary>
-    public bool OneRoadTest()
+    public int OneRoadTest()
     {
-        int roadNum = 1;
+        var roadNum = 0;
 
         ClearRoadTest();
 
@@ -238,7 +234,7 @@ public class GridLayer : MonoBehaviour
             }
 
         //Debug.LogFormat("RoadTest {0}", roadNum - 1);
-        return roadNum == 2;
+        return roadNum;
     }
 
     /// <summary>помечаем все клетки эти номером дороги</summary>
@@ -265,6 +261,7 @@ public class GridLayer : MonoBehaviour
                 result += GetTradeProfit(cell);
         }
 
+        //Debug.LogFormat("total {0}", (float)result/CoreGame.TradePart);
         return result;
     }
 
@@ -312,6 +309,8 @@ public class GridLayer : MonoBehaviour
             else
                 currentWave = 0;
         }
+
+        townCell.ShowScore((float)result/CoreGame.TradePart);
 
         return result;
     }

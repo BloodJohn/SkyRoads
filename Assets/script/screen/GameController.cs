@@ -15,6 +15,10 @@ public class GameController : MonoBehaviour
     private float speed = 0f;
     private const float maxTime = 1f;
     private bool nextLevel = false;
+    private int currentRoadCount;
+
+    private int totalBuild;
+    private int totalTrade;
 
     #region unity
 
@@ -59,8 +63,8 @@ public class GameController : MonoBehaviour
     {
         if (CoreGame.Instance == null) return;
         moneyText.text = CoreGame.Instance.money.ToString();
-        buildText.text = CoreGame.Instance.buildRate.ToString();
-        tradeText.text = CoreGame.Instance.tradeRate.ToString();
+        buildText.text = totalBuild.ToString();
+        tradeText.text = (totalTrade/CoreGame.TradePart).ToString();
     }
 
     private void CheckMouseClick(Vector2 mouseWorldPos)
@@ -70,16 +74,29 @@ public class GameController : MonoBehaviour
         {
             if (hit.transform == null) continue;
             var cell = hit.transform.parent.gameObject.GetComponent<CellView>();
-            if (cell==null) continue;
+            if (cell == null) continue;
 
             if (!grid.BuildBridge(cell)) continue;
-            var trade = grid.AllTradeTest();
-            CoreGame.Instance.SetTrade(trade);
-            Debug.LogFormat("trade: {0} money: {1}", trade, CoreGame.Instance.money);
+            totalBuild += CoreGame.Instance.buildRate;
+
+            var roadCount = grid.OneRoadTest();
+            if (roadCount < currentRoadCount)
+            {
+                totalTrade = grid.AllTradeTest() * (currentRoadCount - roadCount);
+                CoreGame.Instance.CompleteRoad(totalTrade);
+                Debug.LogFormat("trade: {0} money: {1}", totalTrade, CoreGame.Instance.money);
+            }
 
             ShowStats();
 
-            if (CoreGame.Instance.money<=0)
+            if (roadCount < currentRoadCount)
+            {
+                totalBuild = 0;
+                totalTrade = 0;
+                currentRoadCount = roadCount;
+            }
+
+            if (CoreGame.Instance.money <= 0)
             {
                 Debug.LogFormat("GAME OVER");
                 speed = 1f;
@@ -87,7 +104,7 @@ public class GameController : MonoBehaviour
                 return;
             }
 
-            if (grid.OneRoadTest())
+            if (roadCount == 1)
             {
                 Debug.LogFormat("WIN");
                 CoreGame.Instance.WinLevel();
@@ -101,7 +118,7 @@ public class GameController : MonoBehaviour
 
     private bool FlyAnimation()
     {
-        if (speed==0f) return false;
+        if (speed == 0f) return false;
 
         time += Time.deltaTime * speed;
         if (time < 0)
@@ -142,15 +159,16 @@ public class GameController : MonoBehaviour
     private void StartLevel()
     {
         grid.BuildCityBridge();
-        var trade = grid.AllTradeTest();
-        CoreGame.Instance.SetTrade(trade);
-        Debug.LogFormat("start trade: {0}", trade);
+        currentRoadCount = grid.OneRoadTest();
+        totalTrade = grid.AllTradeTest();
+        CoreGame.Instance.CompleteRoad(totalTrade);
+        Debug.LogFormat("start trade: {0}", totalTrade);
         ShowStats();
     }
 
     private void CompleteLevel()
     {
-        
+
     }
     #endregion
 }
