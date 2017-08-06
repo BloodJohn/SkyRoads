@@ -1,12 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class CoreGame : MonoBehaviour
 {
     #region const
-    /// <summary>Ключ куда мы сохраним игру</summary>
-    private const string MoneySaveKey = "moneySave";
-    /// <summary>Ключ куда мы сохраним игру</summary>
-    private const string LevelSaveKey = "levelSave";
+    private const string SaveKey = "saveKey";
 
     public const int TradePart = 5; //10
     #endregion
@@ -18,6 +17,7 @@ public class CoreGame : MonoBehaviour
     public int buildRate;
     public int tradeRate;
     public int level;
+    public readonly List<int> moneyHistory = new List<int>(50);
     #endregion
 
     #region constructor
@@ -35,17 +35,8 @@ public class CoreGame : MonoBehaviour
         money = 100;
         tradeRate = 0;
         buildRate = 0;
-        PlayerPrefs.SetInt(LevelSaveKey,level);
-        PlayerPrefs.SetInt(MoneySaveKey, money);
-        PlayerPrefs.Save();
-    }
-
-    public void LoadGame()
-    {
-        level = PlayerPrefs.GetInt(LevelSaveKey, 0);
-        money = PlayerPrefs.GetInt(MoneySaveKey, 100);
-        tradeRate = 0;
-        buildRate = 0;
+        moneyHistory.Clear();
+        SaveGame();
     }
 
     public void WinLevel()
@@ -53,10 +44,8 @@ public class CoreGame : MonoBehaviour
         level++;
         tradeRate = 0;
         buildRate = 0;
-
-        PlayerPrefs.SetInt(LevelSaveKey,level);
-        PlayerPrefs.SetInt(MoneySaveKey, money);
-        PlayerPrefs.Save();
+        moneyHistory.Add(money);
+        SaveGame();
     }
 
     public int BuildBridge(int cellId)
@@ -93,4 +82,43 @@ public class CoreGame : MonoBehaviour
         money += (int)tradeRate;
     }
     #endregion
+
+    private void SaveGame()
+    {
+        var save = new GameProgress()
+        {
+            level = level,
+            money = money,
+            history = moneyHistory.ToArray()
+        };
+
+        var saveStr = JsonUtility.ToJson(save);
+        Debug.LogFormat("save: {0}",saveStr);
+        PlayerPrefs.SetString(SaveKey, saveStr);
+        PlayerPrefs.Save();
+    }
+
+    public void LoadGame()
+    {
+        var saveStr = PlayerPrefs.GetString(SaveKey, string.Empty);
+        if (string.IsNullOrEmpty(saveStr)) return;
+        var save = JsonUtility.FromJson<GameProgress>(saveStr);
+
+        level = save.level;
+        money = save.money;
+        moneyHistory.Clear();
+        moneyHistory.AddRange(save.history);
+
+        if (level <= 0) money = 100;
+        tradeRate = 0;
+        buildRate = 0;
+    }
+
+
+    private struct GameProgress
+    {
+        public int level;
+        public int money;
+        public int[] history;
+    }
 }
